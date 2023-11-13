@@ -1,49 +1,38 @@
 from libs.Functions import *
-def Mail_Merged_Mau04(wb_path, ws_name, doc_sample_path, des_folder):
-    import openpyxl, docx, shutil
-    from os.path import join
-#1. INPUT dư liệu excel
-    wb = openpyxl.load_workbook(wb_path, data_only= True)
-    ws = wb[ws_name]
-#2. Tag «» Mail_merge cho dòng tên cột (dòng 1)
-    dict_cl_name = {}
-    count_cl_name = 1
-    for cl_idx in range(1, ws.max_column+1):
-        cl_name = icell(ws, 1, cl_idx)
-        name_tag = "«"+ cl_name + "»"
-        w_icell(ws, 1, cl_idx, name_tag)
-        dict_cl_name[name_tag] = count_cl_name
-        count_cl_name += 1
-#3. Duyệt từng dòng của file excel
-    for r_idx in range(2, ws.max_row + 1):
-####. Trường hợp này đặc biệt vì chỉ tạo Merged khi có số MBV
-        mbv = icell(ws, r_idx, 2)
-        if mbv != "None":
-#4. Tạo và đặt tên file word kết quả
-####. Chỉnh tên muốn đặt
-            out_name = icell(ws, r_idx, 2) + "_" + mbv + ".docx"
-            shutil.copy(doc_sample_path, join(des_folder, out_name))
-#5. Mở từng file vừa tạo để gắn giá trị theo Tag Mail_Merge
-            doc = docx.Document(join(des_folder, out_name))
-####. Duyệt text
-            for para in doc.paragraphs:
-                for run in para.runs:
-                    if run.text in dict_cl_name.keys():
-                        content = icell(ws, r_idx, dict_cl_name[run.text])
-                        if content != "None":
-                            run.text = content
-                        else:
-                            run.text = ""
-####. Duyệt Table
-            for tab in doc.tables:
-                for row in tab.rows:
-                    for cell in row.cells:
-                        for para in cell.paragraphs:
-                            for run in para.runs:
-                                if run.text in dict_cl_name.keys():
-                                    content = icell(ws, r_idx, dict_cl_name[run.text])
-                                    if content != "None":
-                                        run.text = content
-                                    else:
-                                        run.text = "" 
-            doc.save(join(des_folder,out_name))
+import numpy as np
+import pandas as pd
+from openpyxl.utils import column_index_from_string
+import openpyxl, docx, shutil
+from os.path import join
+
+def get_workbook_path():
+    wb_path = input("Hãy nhập đường dẫn file excel: ")
+    return format_path(wb_path)
+
+def get_sheet_name(wb_path):
+    print("File excel gồm các sheet: ")
+    dict_sheet = {}
+    count = 1
+    for sheet in openpyxl.load_workbook(wb_path).sheetnames:
+        print(str(count) + ".", sheet)
+        dict_sheet[count] = sheet
+        count +=1
+    option = int(input("Hãy chọn sheet sử dụng: "))
+    return dict_sheet[option]
+
+def get_columns_to_format():
+    cot_so = (input("Hãy nhập các cột bạn muốn định dạng số cách nhau bằng dấu \",\": "))
+    cot_so_idx = []
+    if len(cot_so)>0:
+        if " " in cot_so:
+            cot_so = cot_so.replace(" ","")
+        cot_so = cot_so.split(",")
+        for char in cot_so:
+            cot_so_idx.append(column_index_from_string(char))
+    return cot_so_idx
+
+def Mail_Merged():
+    wb_path = get_workbook_path()
+    ws_name = get_sheet_name(wb_path)
+    cot_so_idx = get_columns_to_format()
+    # ... rest of the function ...
