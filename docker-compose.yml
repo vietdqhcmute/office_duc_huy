@@ -1,0 +1,9 @@
+version: '3'
+services:
+  my_python_app:
+    image: python:latest
+    container_name: office_huy
+    restart: always
+    working_dir: /app
+    volumes:
+      - ./app:/app
